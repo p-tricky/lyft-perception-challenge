@@ -33,8 +33,8 @@ answer_key = {}
 # Frame numbering starts at 1
 frame = 1
 
-model = LinkNet34(num_classes=3).cuda()
-model.load_state_dict(torch.load('./best.pt'))
+model = LinkNet34(num_classes=3, pretrained=False).cuda()
+model.load_state_dict(torch.load('./udacity-seg-challenge/best.pt'))
 model.eval()
 
 start = time.time()
@@ -44,6 +44,7 @@ for rgb_frame in video:
     out = model(input_img)
 
     out = np.argmax(out.cpu().detach().numpy()[0], axis=0)
+    out = np.pad(out, ((0, 56), (0, 0)), 'constant', constant_values=(0))
     
     # Look for red cars :)
     binary_car_result = np.where(out == 2,1,0).astype('uint8')
