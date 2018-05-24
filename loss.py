@@ -41,7 +41,8 @@ class MyLossMulti:
         self.betas = betas
 
     def __call__(self, outputs, targets):
-        loss = self.nll_loss(outputs, targets)
+#         loss = self.nll_loss(outputs, targets)
+        loss = torch.tensor(0, dtype=torch.float, requires_grad=True)
         if self.jaccard_weight:
             cls_weight = self.jaccard_weight / self.num_classes
             eps = 1e-15
@@ -54,8 +55,8 @@ class MyLossMulti:
                 prec = correct / (output.sum().item() + eps)
                 recall = correct / (target.sum().item() + eps)
                 f_score = (1+beta**2)*(prec*recall)/(beta**2*prec+recall)
-                loss += (1-f_score)/2
-            
+                loss = loss + (1-f_score)/2
+#             loss /= 2
         return loss
 
 class LossMulti:
