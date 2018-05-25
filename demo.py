@@ -34,29 +34,31 @@ answer_key = {}
 frame = 1
 
 model = LinkNet34(num_classes=3, pretrained=False).cuda()
-model.load_state_dict(torch.load('./udacity-seg-challenge/best.pt'))
+model.load_state_dict(torch.load('./udacity-seg-challenge/cur_model.pt'))
 model.eval()
 
-start = time.time()
-for rgb_frame in video:
-    
-    input_img = torch.unsqueeze(img_transform(rgb_frame).cuda(), dim=0)
-    out = model(input_img)
+with torch.no_grad():
 
-    out = np.argmax(out.cpu().detach().numpy()[0], axis=0)
-    out = np.pad(out, ((0, 56), (0, 0)), 'constant', constant_values=(0))
-    
-    # Look for red cars :)
-    binary_car_result = np.where(out == 2,1,0).astype('uint8')
-    
-    # Look for road :)
-    binary_road_result = np.where(out == 1,1,0).astype('uint8')
+    start = time.time()
+    for rgb_frame in video:
 
-    answer_key[frame] = [encode(binary_car_result), encode(binary_road_result)]
-    
-    # Increment frame
-    frame+=1
-    
-end = time.time()    
-# Print output in proper json format
-print (json.dumps(answer_key))
+        input_img = torch.unsqueeze(img_transform(rgb_frame).cuda(), dim=0)
+        out = model(input_img)
+
+        out = np.argmax(out.cpu().detach().numpy()[0], axis=0)
+        out = np.pad(out, ((0, 56), (0, 0)), 'constant', constant_values=(0))
+
+        # Look for red cars :)
+        binary_car_result = np.where(out == 2,1,0).astype('uint8')
+
+        # Look for road :)
+        binary_road_result = np.where(out == 1,1,0).astype('uint8')
+
+        answer_key[frame] = [encode(binary_car_result), encode(binary_road_result)]
+
+        # Increment frame
+        frame+=1
+
+    end = time.time()    
+    # Print output in proper json format
+    print (json.dumps(answer_key))
